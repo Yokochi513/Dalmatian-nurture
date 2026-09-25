@@ -79,6 +79,22 @@ graph TD
 
 矢印は依存の向きを表し、逆向きの依存は禁止。`core`・`anim`・`physics` は OpenGL に依存しないため、描画なしで単体テストできる。
 
+## ビルド
+
+Visual Studio 2022（「C++ によるデスクトップ開発」ワークロード）が必要。
+CMake と Ninja は Visual Studio に付属のものを使える。
+
+「Developer PowerShell for VS 2022」などの MSVC の環境を読み込んだシェルで、次を実行する。
+初回の構成時に依存ライブラリをダウンロードする。
+
+```
+cmake --preset debug
+cmake --build --preset debug
+ctest --preset debug
+```
+
+実行ファイルは `build/debug/src/app/dalmatian.exe`。リリースビルドは `debug` を `release` に置き換える。
+
 ## ドキュメント
 - 決定事項: [docs/adr/](docs/adr/) — 1決定につき1ファイル（[運用ルール](docs/adr/0001-record-decisions-in-adr.md)）
 - エージェント向けルール: [AGENT.md](AGENT.md)
