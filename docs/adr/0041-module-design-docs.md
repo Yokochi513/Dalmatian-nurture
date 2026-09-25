@@ -1,6 +1,6 @@
 # 0041. モジュール内部の決定は docs/module_design/ に記録し、ADR はモジュールをまたぐ決定に使う
 
-- Status: Accepted
+- Status: Partially superseded by [0043](0043-module-design-per-component.md)（設計書のファイルの単位）
 - Date: 2026-09-26
 
 ## Context
