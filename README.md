@@ -29,25 +29,26 @@
 ## ファイル構成
 
 ```
-CMakeLists.txt
-cmake/             CMake の補助スクリプト（依存取得・コンパイラ設定）
-src/
-  core/            育成ロジック：欲求・世話・成長・芸・行動意図・セーブ（OpenGL非依存）
-  anim/            glTF読込・スケルトン・アニメーション計算（OpenGL非依存）
-  gfx/             OpenGL描画：シェーダ・スキンメッシュ・カメラ・昼夜の光
-  platform/        OSとの境界：ウィンドウ・入力・システム時計・音声・保存先パス
-  app/             main・ゲームループ・シーン・デバッグUI
-shaders/           GLSL
-assets/
-  models/          .glb
-  textures/
-  audio/
-  source/          .blend などの編集元
-tests/
-  core/            core の単体テスト
-  anim/            anim の単体テスト
-third_party/glad/  glad の生成物
-docs/adr/          決定事項の記録
+Dalmatian-nurture
+┣━ CMakeLists.txt
+┣━ cmake/             CMake の補助スクリプト（依存取得・コンパイラ設定）
+┣━ src/
+┃   ┣━ core/            育成ロジック：欲求・世話・成長・芸・行動意図・セーブ（OpenGL非依存）
+┃   ┣━ anim/            glTF読込・スケルトン・アニメーション計算（OpenGL非依存）
+┃   ┣━ gfx/             OpenGL描画：シェーダ・スキンメッシュ・カメラ・昼夜の光
+┃   ┣━ platform/        OSとの境界：ウィンドウ・入力・システム時計・音声・保存先パス
+┃   ┗━ app/             main・ゲームループ・シーン・デバッグUI
+┣━ shaders/           GLSL
+┣━ assets/
+┃   ┣━ models/          .glb
+┃   ┣━ textures/
+┃   ┣━ audio/
+┃   ┗━ source/          .blend などの編集元
+┣━tests/
+┃   ┣━ core/            core の単体テスト
+┃   ┗━ anim/            anim の単体テスト
+┣━ third_party/glad/  glad の生成物
+┗━ docs/adr/          決定事項の記録
 ```
 
 各ファイルの一覧と構成のルールは [ADR 0009](docs/adr/0009-module-structure.md) を参照。
