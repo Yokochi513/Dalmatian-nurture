@@ -126,6 +126,23 @@ TEST_CASE("世話を受け付けると成長ポイントがたまり、成長し
     CHECK(sim.state().stage == dal::core::GrowthStage::Young);
 }
 
+TEST_CASE("do_trick は習得の出来事と成長の出来事をまとめて返す")
+{
+    Tuning t = hunger_per_second();
+    t.train_base = 100.0;
+    t.train.growth_points = 30.0;
+    t.growth.young_at = 30.0;
+    FakeClock clock{kStart};
+    DogState state;
+    state.affection = 100.0;
+    Simulation sim{clock, state, kStart, t};
+
+    const auto result = sim.do_trick(dal::core::Care::Train, dal::core::Trick::Sit);
+    REQUIRE(result.events.size() == 2);
+    CHECK(result.events[0].kind == dal::core::EventKind::LearnedTrick);
+    CHECK(result.events[1].kind == dal::core::EventKind::Grew);
+}
+
 TEST_CASE("断られた世話では成長ポイントはたまらない")
 {
     Tuning t = hunger_per_second();

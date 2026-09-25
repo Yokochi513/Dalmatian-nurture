@@ -21,9 +21,13 @@ struct Needs {
 
 enum class GrowthStage { Puppy, Young, Adult };
 
-// 世話の種類。しつける・芸をさせるは芸（tricks）の設計で追加する
-enum class Care { Feed, Pet, Play, Walk };
-inline constexpr std::size_t kCareCount = 4;
+// 世話の種類。Train・PerformTrick は芸を指定して実行する（tricks）
+enum class Care { Feed, Pet, Play, Walk, Train, PerformTrick };
+inline constexpr std::size_t kCareCount = 6;
+
+// 芸（ADR 0034）
+enum class Trick { Sit, Paw, Down, Stay, Spin };
+inline constexpr std::size_t kTrickCount = 5;
 
 // 世話ごとの記録。クールダウンと1日の上限の判定に使う
 struct CareRecord {
@@ -45,6 +49,8 @@ struct DogState {
     double growth_points = 0.0;            // 累計の成長ポイント
     double growth_today = 0.0;             // growth_day の日にたまった量
     std::chrono::local_days growth_day{};  // growth_today を数えている現地の日付
+
+    std::array<double, kTrickCount> trick_proficiency{};  // Trick の順。0〜100、100 で習得
 };
 
 // 初回に迎えた子犬の状態。最初からいくつかの世話ができるよう、欲求をある程度高くしておく

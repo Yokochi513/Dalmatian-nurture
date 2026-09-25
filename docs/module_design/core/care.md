@@ -78,8 +78,13 @@ struct CareAvailability {
 
 const CareTuning& tuning_of(const Tuning&, Care);
 CareAvailability check_care(const DogState&, Care, const ClockReading& now, const Tuning&);
-CareAvailability apply_care(DogState&, Care, const ClockReading& now, const Tuning&);
+CareAvailability apply_care(DogState&, Care, const ClockReading& now, const Tuning&);  // 判定 → commit_care
+void commit_care(DogState&, Care, const ClockReading& now, const Tuning&);  // 判定せずに効果を適用し、記録する
+bool is_trick_care(Care);  // Train か PerformTrick
 ```
+
+- `apply_care` は `Train`・`PerformTrick` を `TrickNotSpecified` で断る（芸を指定する `apply_trick` を使う）
+- `commit_care` は、判定を済ませた呼び出し側（`apply_care`・[tricks.md](tricks.md) の `apply_trick`）が使う
 
 `Simulation` からの呼び出し方は [simulation.md](simulation.md)。
 

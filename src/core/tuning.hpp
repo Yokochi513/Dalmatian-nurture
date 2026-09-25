@@ -48,6 +48,11 @@ struct Tuning {
     CareTuning pet{std::chrono::minutes{10}, 10, 10.0, 40.0, 2.0, 10.0};
     CareTuning play{std::chrono::minutes{30}, 6, 20.0, 50.0, 2.0, 10.0};
     CareTuning walk{std::chrono::hours{2}, 3, 30.0, 0.0, 3.0, 10.0};
+    CareTuning train{std::chrono::minutes{15}, 8, 0.0, 10.0, 1.0, 10.0};
+    CareTuning perform_trick{std::chrono::minutes{5}, 10, 0.0, 10.0, 3.0, 5.0};
+
+    // 芸
+    double train_base = 25.0;  // 練習1回の習熟度の上がり幅の基本値
 
     // 成長
     GrowthTuning growth;

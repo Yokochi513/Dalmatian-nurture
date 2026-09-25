@@ -30,11 +30,14 @@ public:
     // 毎フレーム呼ぶ。前回からの経過を1秒刻みで進め、端数は持ち越す（ADR 0021）
     std::vector<Event> step();
 
-    // 世話を実行できるか（ADR 0017）
+    // 世話を実行できるか（ADR 0017）。芸を指定しない場合、しつける・芸をさせるは上限とクールダウンだけを判定する
     CareAvailability availability(Care care) const;
+    CareAvailability availability(Care care, Trick trick) const;
 
-    // 世話を実行する。先に step() で時間を進めてから判定し、受け付けたら成長ポイントを足す
+    // 世話を実行する。先に step() で時間を進めてから判定し、受け付けたら成長ポイントを足す。
+    // しつける・芸をさせるは do_trick を使う（do_care では TrickNotSpecified で断る）
     CareResult do_care(Care care);
+    CareResult do_trick(Care care, Trick trick);
 
     // 散歩から家に戻ったときに呼ぶ（ADR 0018）
     std::vector<Event> end_walk();
@@ -43,6 +46,7 @@ public:
 
 private:
     void tick();
+    void add_growth_for(Care care, const ClockReading& now, std::vector<Event>& events);
 
     const Clock& clock_;
     DogState state_;

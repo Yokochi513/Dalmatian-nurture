@@ -29,11 +29,11 @@
 | `clock.hpp` | 時計のインターフェース、現地時刻の計算 | [clock.md](core/clock.md) | 実装済み |
 | `dog.hpp/.cpp` | 犬の状態（`DogState`）と関連する列挙、初回の子犬の状態 | [dog.md](core/dog.md) | 実装済み（部品の追加に合わせて拡張） |
 | `needs.hpp/.cpp` | 欲求の時間変化、なつき度の低下、不在中の一括計算、機嫌 | [needs.md](core/needs.md) | 実装済み |
-| `care.hpp/.cpp` | 世話の可否と効果、クールダウン、1日の上限、散歩 | [care.md](core/care.md) | 実装済み（ごはん・なでる・遊ぶ・散歩） |
+| `care.hpp/.cpp` | 世話の可否と効果、クールダウン、1日の上限、散歩 | [care.md](core/care.md) | 実装済み |
 | `simulation.hpp/.cpp` | 1秒刻みで進める入口、不在からの復帰、世話の入口 | [simulation.md](core/simulation.md) | 実装済み（部品の追加に合わせて拡張） |
 | `tuning.hpp` | バランスの数値（`Tuning`） | 各部品の設計書 | — |
 | `growth.hpp/.cpp`、`event.hpp` | 成長ポイントと成長段階、出来事 | [growth.md](core/growth.md) | 実装済み |
-| `tricks.hpp/.cpp` | 芸の習熟度と習得、しつける・芸をさせる | [tricks.md](core/tricks.md) | 設計済み |
+| `tricks.hpp/.cpp` | 芸の習熟度と習得、しつける・芸をさせる | [tricks.md](core/tricks.md) | 実装済み |
 | `behavior.hpp/.cpp` | 行動意図の決定、行動の終了通知、寝ている間 | behavior.md | 未設計 |
 | `save.hpp/.cpp` | JSON との相互変換、形式の番号と変換 | save.md | 未設計 |
 

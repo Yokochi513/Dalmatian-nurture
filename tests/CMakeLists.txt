@@ -3,6 +3,7 @@ add_executable(dalmatian_tests
     core/fake_clock.hpp
     core/care_test.cpp
     core/growth_test.cpp
+    core/tricks_test.cpp
     core/needs_test.cpp
     core/simulation_test.cpp
     physics/jolt_runtime_test.cpp)

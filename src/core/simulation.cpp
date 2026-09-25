@@ -2,6 +2,7 @@
 
 #include "core/growth.hpp"
 #include "core/needs.hpp"
+#include "core/tricks.hpp"
 
 #include <utility>
 
@@ -64,6 +65,11 @@ CareAvailability Simulation::availability(Care care) const
     return check_care(state_, care, clock_.now(), tuning_);
 }
 
+CareAvailability Simulation::availability(Care care, Trick trick) const
+{
+    return check_trick(state_, care, trick, clock_.now(), tuning_);
+}
+
 CareResult Simulation::do_care(Care care)
 {
     CareResult result;
@@ -72,10 +78,30 @@ CareResult Simulation::do_care(Care care)
     const ClockReading now = clock_.now();
     result.availability = apply_care(state_, care, now, tuning_);
     if (result.availability.available()) {
-        const auto grown = add_growth(state_, tuning_of(tuning_, care).growth_points, local_day(now), tuning_);
-        result.events.insert(result.events.end(), grown.begin(), grown.end());
+        add_growth_for(care, now, result.events);
     }
     return result;
+}
+
+CareResult Simulation::do_trick(Care care, Trick trick)
+{
+    CareResult result;
+    result.events = step();
+
+    const ClockReading now = clock_.now();
+    TrickResult trick_result = apply_trick(state_, care, trick, now, tuning_);
+    result.availability = trick_result.availability;
+    result.events.insert(result.events.end(), trick_result.events.begin(), trick_result.events.end());
+    if (result.availability.available()) {
+        add_growth_for(care, now, result.events);
+    }
+    return result;
+}
+
+void Simulation::add_growth_for(Care care, const ClockReading& now, std::vector<Event>& events)
+{
+    const auto grown = add_growth(state_, tuning_of(tuning_, care).growth_points, local_day(now), tuning_);
+    events.insert(events.end(), grown.begin(), grown.end());
 }
 
 std::vector<Event> Simulation::end_walk()

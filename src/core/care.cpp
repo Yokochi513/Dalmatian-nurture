@@ -14,6 +14,8 @@ double& need_of(Needs& needs, Care care)
     case Care::Pet: return needs.loneliness;
     case Care::Play: return needs.boredom;
     case Care::Walk: return needs.exercise;
+    case Care::Train: return needs.boredom;
+    case Care::PerformTrick: return needs.boredom;
     }
     return needs.hunger;
 }
@@ -25,6 +27,8 @@ double need_of(const Needs& needs, Care care)
     case Care::Pet: return needs.loneliness;
     case Care::Play: return needs.boredom;
     case Care::Walk: return needs.exercise;
+    case Care::Train: return needs.boredom;
+    case Care::PerformTrick: return needs.boredom;
     }
     return needs.hunger;
 }
@@ -50,8 +54,15 @@ const CareTuning& tuning_of(const Tuning& tuning, Care care)
     case Care::Pet: return tuning.pet;
     case Care::Play: return tuning.play;
     case Care::Walk: return tuning.walk;
+    case Care::Train: return tuning.train;
+    case Care::PerformTrick: return tuning.perform_trick;
     }
     return tuning.feed;
+}
+
+bool is_trick_care(Care care)
+{
+    return care == Care::Train || care == Care::PerformTrick;
 }
 
 CareAvailability check_care(const DogState& state, Care care, const ClockReading& now, const Tuning& tuning)
@@ -84,11 +95,18 @@ CareAvailability check_care(const DogState& state, Care care, const ClockReading
 
 CareAvailability apply_care(DogState& state, Care care, const ClockReading& now, const Tuning& tuning)
 {
-    const CareAvailability availability = check_care(state, care, now, tuning);
-    if (!availability.available()) {
-        return availability;
+    if (is_trick_care(care)) {
+        return {CareBlock::TrickNotSpecified};
     }
+    const CareAvailability availability = check_care(state, care, now, tuning);
+    if (availability.available()) {
+        commit_care(state, care, now, tuning);
+    }
+    return availability;
+}
 
+void commit_care(DogState& state, Care care, const ClockReading& now, const Tuning& tuning)
+{
     const CareTuning& t = tuning_of(tuning, care);
     const auto today = local_day(now);
     if (state.care_day != today) {
@@ -109,7 +127,6 @@ CareAvailability apply_care(DogState& state, Care care, const ClockReading& now,
     if (care == Care::Walk) {
         state.walking = true;
     }
-    return availability;
 }
 
 } // namespace dal::core
