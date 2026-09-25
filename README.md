@@ -26,6 +26,53 @@
 
 選定理由は [docs/adr/](docs/adr/) の各ADRを参照。
 
+## ファイル構成
+
+```
+CMakeLists.txt
+cmake/             CMake の補助スクリプト（依存取得・コンパイラ設定）
+src/
+  core/            育成ロジック：欲求・世話・成長・芸・行動意図・セーブ（OpenGL非依存）
+  anim/            glTF読込・スケルトン・アニメーション計算（OpenGL非依存）
+  gfx/             OpenGL描画：シェーダ・スキンメッシュ・カメラ・昼夜の光
+  platform/        OSとの境界：ウィンドウ・入力・システム時計・音声・保存先パス
+  app/             main・ゲームループ・シーン・デバッグUI
+shaders/           GLSL
+assets/
+  models/          .glb
+  textures/
+  audio/
+  source/          .blend などの編集元
+tests/
+  core/            core の単体テスト
+  anim/            anim の単体テスト
+third_party/glad/  glad の生成物
+docs/adr/          決定事項の記録
+```
+
+各ファイルの一覧と構成のルールは [ADR 0009](docs/adr/0009-module-structure.md) を参照。
+
+### モジュールの依存関係
+
+```mermaid
+graph TD
+    app[dalmatian_app<br/>実行ファイル]
+    core[dalmatian_core<br/>育成ロジック]
+    gfx[dalmatian_gfx<br/>OpenGL描画]
+    anim[dalmatian_anim<br/>アニメーション計算]
+    platform[dalmatian_platform<br/>OSとの境界]
+    tests[dalmatian_tests<br/>単体テスト]
+
+    app --> core
+    app --> gfx
+    app --> platform
+    gfx --> anim
+    tests --> core
+    tests --> anim
+```
+
+矢印は依存の向きを表し、逆向きの依存は禁止。`core` と `anim` は OpenGL に依存しないため、描画なしで単体テストできる。
+
 ## ドキュメント
 - 決定事項: [docs/adr/](docs/adr/) — 1決定につき1ファイル（[運用ルール](docs/adr/0001-record-decisions-in-adr.md)）
 - エージェント向けルール: [AGENT.md](AGENT.md)
