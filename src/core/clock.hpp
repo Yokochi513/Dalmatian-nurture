@@ -12,6 +12,19 @@ struct ClockReading {
     std::chrono::minutes utc_offset{0};  // 日本なら +540
 };
 
+// 現地時刻
+inline std::chrono::local_time<std::chrono::milliseconds> local_now(const ClockReading& reading)
+{
+    return std::chrono::local_time<std::chrono::milliseconds>{
+        reading.utc.time_since_epoch() + reading.utc_offset};
+}
+
+// 現地の日付。「1日」の区切りは現地時刻の0時（ADR 0023）
+inline std::chrono::local_days local_day(const ClockReading& reading)
+{
+    return std::chrono::floor<std::chrono::days>(local_now(reading));
+}
+
 // 時計のインターフェース。実装は platform（本番）・app（デバッグ）・tests（テスト）に置く
 class Clock {
 public:

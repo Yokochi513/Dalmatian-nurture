@@ -23,6 +23,7 @@ Simulation::Simulation(const Clock& clock, DogState state, TimePoint last_saved,
 void Simulation::resume()
 {
     const TimePoint now = clock_.now().utc;
+    state_.walking = false;
     if (now > last_processed_) {
         apply_absence(state_, now - last_processed_, tuning_);
     }
@@ -55,10 +56,27 @@ void Simulation::step()
     }
 }
 
+CareAvailability Simulation::availability(Care care) const
+{
+    return check_care(state_, care, clock_.now(), tuning_);
+}
+
+CareAvailability Simulation::do_care(Care care)
+{
+    step();
+    return apply_care(state_, care, clock_.now(), tuning_);
+}
+
+void Simulation::end_walk()
+{
+    step();
+    state_.walking = false;
+}
+
 void Simulation::tick()
 {
-    // 寝ている・散歩中は行動意図（behavior）と散歩（ADR 0018）の設計で反映する
-    const Activity activity = Activity::Awake;
+    // 寝ている間（Sleeping）は行動意図（behavior）の設計で反映する
+    const Activity activity = state_.walking ? Activity::Walking : Activity::Awake;
     advance_needs(state_.needs, activity, kTick, tuning_);
     apply_neglect(state_.affection, state_.needs, kTick, tuning_);
 }

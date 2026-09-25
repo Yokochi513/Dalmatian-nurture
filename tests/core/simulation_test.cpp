@@ -91,6 +91,52 @@ TEST_CASE("resume は最終終了時刻からの経過を不在として進め�
     CHECK(sim.state().needs.hunger == Approx(11.0));
 }
 
+TEST_CASE("do_care は時間を進めてから判定する")
+{
+    Tuning t = hunger_per_second();
+    t.feed.min_need = 30.0;
+    FakeClock clock{kStart};
+    DogState state;
+    state.needs.hunger = 25.0;
+    Simulation sim{clock, state, kStart, t};
+
+    clock.advance(5s);  // step() を呼ばなくても、do_care の中で空腹が 30 になる
+    CHECK(sim.do_care(dal::core::Care::Feed).available());
+}
+
+TEST_CASE("散歩中は運動の欲求が時間とともに減り、end_walk で止まる")
+{
+    Tuning t = hunger_per_second();
+    t.walk_exercise_per_hour = 3600.0;  // 1秒に 1 減る
+    t.walk.min_need = 0.0;
+    FakeClock clock{kStart};
+    DogState state;
+    state.needs.exercise = 50.0;
+    Simulation sim{clock, state, kStart, t};
+
+    sim.do_care(dal::core::Care::Walk);
+    clock.advance(10s);
+    sim.step();
+    CHECK(sim.state().needs.exercise == Approx(40.0));
+
+    sim.end_walk();
+    CHECK_FALSE(sim.state().walking);
+    clock.advance(10s);
+    sim.step();
+    CHECK(sim.state().needs.exercise == Approx(40.0));  // 運動の増え方は 0
+}
+
+TEST_CASE("散歩中に終了していた場合、resume で散歩を終える")
+{
+    FakeClock clock{kStart + 1h};
+    DogState state;
+    state.walking = true;
+    Simulation sim{clock, state, kStart, hunger_per_second()};
+
+    sim.resume();
+    CHECK_FALSE(sim.state().walking);
+}
+
 TEST_CASE("最終終了時刻が未来なら resume は何もしない")
 {
     FakeClock clock{kStart};

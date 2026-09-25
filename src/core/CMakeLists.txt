@@ -2,7 +2,10 @@
 add_library(dalmatian_core STATIC
     clock.hpp
     dog.hpp
+    dog.cpp
     tuning.hpp
+    care.hpp
+    care.cpp
     needs.hpp
     needs.cpp
     simulation.hpp

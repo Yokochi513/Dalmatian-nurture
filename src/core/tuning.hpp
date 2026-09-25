@@ -4,6 +4,15 @@
 
 namespace dal::core {
 
+// 世話ごとの数値
+struct CareTuning {
+    std::chrono::seconds cooldown{0};  // 次に同じ世話ができるまでの時間
+    int daily_limit = 0;               // 1日に受け付ける回数
+    double min_need = 0.0;             // 対応する欲求がこれ未満なら「満たされている」として断る
+    double relief = 0.0;               // 対応する欲求を減らす量（散歩は時間で減るため 0）
+    double affection_gain = 0.0;       // 受け付けたときのなつき度の上がり幅
+};
+
 // バランスの数値。既定値は仮の値で、バランス調整の中で決める。
 // テストは既定値に依存せず、必要な数値を明示する
 struct Tuning {
@@ -25,6 +34,12 @@ struct Tuning {
     // 前回の step() からこれ以上空いたら不在として扱う。
     // デバッグ時計の ×3600（1フレームで約60秒）が不在扱いにならない長さにする
     std::chrono::seconds offline_gap{std::chrono::minutes{10}};
+
+    // 世話
+    CareTuning feed{std::chrono::hours{3}, 3, 30.0, 70.0, 1.0};
+    CareTuning pet{std::chrono::minutes{10}, 10, 10.0, 40.0, 2.0};
+    CareTuning play{std::chrono::minutes{30}, 6, 20.0, 50.0, 2.0};
+    CareTuning walk{std::chrono::hours{2}, 3, 30.0, 0.0, 3.0};
 };
 
 } // namespace dal::core

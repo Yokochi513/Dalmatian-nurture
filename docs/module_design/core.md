@@ -3,8 +3,8 @@
 `dalmatian_core`（`src/core/`、名前空間 `dal::core`）の設計。
 モジュールをまたぐ決定は [docs/adr/](../adr/) にあり、ここではそれを前提に core の内部を決める。
 
-- 状態: 時計・犬の状態・欲求・時間の進め方は設計・実装済み
-- 未設計: 世話（care）、成長（growth）、芸（tricks）、行動意図（behavior）、セーブ（save）
+- 状態: 時計・犬の状態・欲求・時間の進め方・世話（ごはん・なでる・遊ぶ・散歩）は設計・実装済み
+- 未設計: 成長（growth）、芸（tricks）、行動意図（behavior）、セーブ（save）
 
 ## 責務
 
@@ -28,11 +28,11 @@
 | ファイル | 内容 | 設計 |
 |---|---|---|
 | `clock.hpp` | 時計のインターフェース | 本書 |
-| `dog.hpp` | 犬の状態（`DogState`）と関連する列挙 | 本書（一部） |
+| `dog.hpp/.cpp` | 犬の状態（`DogState`）と関連する列挙、初回の子犬の状態 | 本書（一部） |
 | `tuning.hpp` | バランスの数値（`Tuning`） | 本書（一部） |
 | `needs.hpp/.cpp` | 欲求の時間変化、なつき度の低下、不在中の一括計算、機嫌の計算 | 本書 |
-| `simulation.hpp/.cpp` | 1秒刻みで進める入口、不在からの復帰 | 本書（一部） |
-| `care.hpp/.cpp` | 世話の可否と効果、クールダウン、1日の上限 | 未設計 |
+| `simulation.hpp/.cpp` | 1秒刻みで進める入口、不在からの復帰、世話の入口 | 本書（一部） |
+| `care.hpp/.cpp` | 世話の可否と効果、クールダウン、1日の上限 | 本書（一部） |
 | `growth.hpp/.cpp` | 成長ポイントと成長段階 | 未設計 |
 | `tricks.hpp/.cpp` | 芸の習熟度と習得 | 未設計 |
 | `behavior.hpp/.cpp` | 行動意図の決定 | 未設計 |
@@ -70,6 +70,7 @@ public:
 ```
 
 - 経過時間の計算とセーブの最終終了時刻には `utc` を使う
+- 現地時刻は `local_now(reading)`、現地の日付は `local_day(reading)` で求める
 - 「1日」の区切り（ADR 0023）と一日の中の時刻（ADR 0024）には `utc + utc_offset`（現地時刻）を使う
 - core は OS のタイムゾーン情報を直接読まない。テストでは時差も自由に設定できる
 - `Simulation` は作成時に `const Clock&` を受け取り、`step()` や世話の命令の中で自分で時刻を読む。
@@ -99,13 +100,26 @@ struct Needs {
 
 enum class GrowthStage { Puppy, Young, Adult };
 
+enum class Care { Feed, Pet, Play, Walk };
+
+struct CareRecord {
+    std::optional<TimePoint> last_done;  // 最後に受け付けた時刻（UTC）
+    int count_today = 0;                 // care_day の日に受け付けた回数
+};
+
 struct DogState {
     std::string name;
     Needs needs;
     double affection = 0.0;  // なつき度
     GrowthStage stage = GrowthStage::Puppy;
-    // 以下は各節の設計で追加する：成長ポイント、芸の習熟度、世話の記録、行動意図、散歩中かどうか
+
+    std::array<CareRecord, kCareCount> care_records{};  // Care の順
+    std::chrono::local_days care_day{};  // count_today を数えている現地の日付
+    bool walking = false;                // 散歩中か（ADR 0018）
+    // 以下は各節の設計で追加する：成長ポイント、芸の習熟度、行動意図
 };
+
+DogState new_dog(std::string name);  // 初回に迎えた子犬の状態
 
 } // namespace dal::core
 ```
@@ -113,6 +127,9 @@ struct DogState {
 - 欲求となつき度は小数の 0〜100。欲求は大きいほど強く欲しがっている（ADR 0031）
 - 値を更新したら必ず 0〜100 に切り詰める
 - **機嫌は保存しない**。`mood(const Needs&)` で毎回計算する（ADR 0030）
+- 初回の子犬（`new_dog`）は、最初からいくつかの世話ができるよう欲求をある程度高くしておく
+  （空腹 60・運動 50・退屈 60・寂しさ 60・眠気 20、なつき度 20）。欲求が低いと「満たされている」で
+  世話を断られ、初回のプレイで何もできないため
 
 ## 欲求（needs）
 
@@ -130,7 +147,8 @@ double mood(const Needs&);
 ```
 
 1秒刻みごとに `advance_needs` → `apply_neglect` の順に呼ぶ（なつき度の判定には更新後の欲求を使う）。
-`Activity` は、行動意図（behavior）と散歩の設計までは常に `Awake` とする。
+`Activity` は、散歩中（`DogState::walking`）なら `Walking`、それ以外は `Awake`。
+`Sleeping` は行動意図（behavior）の設計で反映する。
 
 ### 起動中の変化（1秒刻みごと）
 
@@ -177,6 +195,67 @@ mood = 100 − （5つの欲求の平均）
 
 計算式は調整する可能性があるため、`mood()` の中に閉じ込める。
 
+## 世話（care）
+
+本書で扱う世話は **ごはん（Feed）・なでる（Pet）・遊ぶ（Play）・散歩（Walk）**。
+しつける・芸をさせるは芸（tricks）、成長ポイントは成長（growth）、「寝ているので不可」は
+行動意図（behavior）の設計で追加する。
+
+### 世話と欲求
+
+| 世話 | 対応する欲求 | 効果 |
+|---|---|---|
+| Feed | 空腹 | 受け付けた時点で `relief` だけ減る（ADR 0016） |
+| Pet | 寂しさ | 同上 |
+| Play | 退屈 | 同上 |
+| Walk | 運動 | 受け付けると散歩中になり、散歩中の時間に応じて減る（ADR 0018） |
+
+受け付けたときは、どの世話でもなつき度が `affection_gain` だけ上がる。
+
+### 実行できるかの判定
+
+`check_care` は次の順に調べ、最初に当てはまった理由を返す（ADR 0017）。
+
+| 順 | 理由（`CareBlock`） | 条件 | 残り時間 |
+|---|---|---|---|
+| 1 | `AlreadyWalking` | 散歩中に散歩を始めようとした | なし |
+| 2 | `DailyLimit` | 今日受け付けた回数が `daily_limit` に達した | 次の現地の0時まで |
+| 3 | `Cooldown` | 最後に受け付けてから `cooldown` が経っていない | クールダウンの残り |
+| 4 | `NotNeeded` | 対応する欲求が `min_need` 未満（満たされている） | なし |
+
+- 表示する文言（「あと15分」「今日はもう満足」「おなかいっぱい」など）への変換は `app` が行う
+- 1日の上限は、クールダウンより長く待つ必要があるため先に判定する
+- 時計が戻って最終時刻が未来になっても、クールダウンの残り時間は `cooldown` を超えない
+- `NotNeeded` は、欲求が低いのに世話を繰り返して成長ポイントを稼ぐことも防ぐ
+
+### 1日の回数の数え方
+
+- 世話ごとに `CareRecord`（最後に受け付けた時刻、今日の回数）を持つ
+- 回数を数えている日付を `DogState::care_day`（現地の日付）に持つ。判定時は、今日と `care_day` が
+  違えば回数を 0 とみなす。受け付けたときに日付が変わっていれば、すべての世話の回数を 0 に戻してから数える
+
+### 散歩
+
+- 散歩の開始は世話の1つ（`Care::Walk`）として判定・記録する。受け付けると `walking = true`
+- 散歩中は運動の欲求が `walk_exercise_per_hour` で減る。0 を下回らないことが効果の上限になる
+- 家に戻ったら `app` が `end_walk()` を呼ぶ
+- 散歩中に終了していた場合は、`resume()` で散歩を終える（ADR 0029）
+
+### 関数
+
+```cpp
+enum class CareBlock { None, AlreadyWalking, DailyLimit, Cooldown, NotNeeded };
+
+struct CareAvailability {
+    CareBlock block = CareBlock::None;
+    std::chrono::seconds remaining{0};
+    bool available() const;
+};
+
+CareAvailability check_care(const DogState&, Care, const ClockReading& now, const Tuning&);
+CareAvailability apply_care(DogState&, Care, const ClockReading& now, const Tuning&);  // 断ったら状態を変えない
+```
+
 ## 時間の進め方（simulation の一部）
 
 - `Simulation` は前回処理した時刻と、1秒に満たない端数を持つ（ADR 0021）
@@ -193,10 +272,13 @@ class Simulation {
 public:
     Simulation(const Clock& clock, DogState state, TimePoint last_saved, Tuning tuning = {});
 
-    void resume();  // 起動時に1回
+    void resume();  // 起動時に1回。散歩中だったら散歩を終える
     void step();    // 毎フレーム
+    CareAvailability availability(Care care) const;  // メニューの表示用
+    CareAvailability do_care(Care care);  // 先に step() で時間を進めてから判定・実行する
+    void end_walk();                      // 散歩から家に戻ったとき
     const DogState& state() const;
-    // 世話の命令・可否の問い合わせ・行動の終了通知は care と behavior の設計で追加する
+    // 行動の終了通知は behavior の設計で追加する
 };
 ```
 
@@ -221,6 +303,15 @@ public:
 | `offline_need_cap` | 80.0 | 不在中に欲求が届く上限 |
 | `offline_affection_loss_max` | 10.0 | 1回の不在でのなつき度の低下の上限 |
 | `offline_gap` | 10分 | 前回の `step()` からこれ以上空いたら不在として扱う |
+
+世話ごとの数値（`CareTuning`）。
+
+| 世話 | `cooldown` | `daily_limit` | `min_need` | `relief` | `affection_gain` |
+|---|---|---|---|---|---|
+| `feed` | 3時間 | 3 | 30 | 70 | 1 |
+| `pet` | 10分 | 10 | 10 | 40 | 2 |
+| `play` | 30分 | 6 | 20 | 50 | 2 |
+| `walk` | 2時間 | 3 | 30 | 0（時間で減る） | 3 |
 
 ## テスト方針
 
