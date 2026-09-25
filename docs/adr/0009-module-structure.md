@@ -1,6 +1,6 @@
 # 0009. モジュール構成を6ターゲットとし、アニメーション計算を描画から分離する
 
-- Status: Accepted
+- Status: Partially superseded by [0015](0015-physics-target.md)（ターゲット一覧・依存方向）
 - Date: 2026-09-25
 
 ## Context

@@ -21,7 +21,7 @@
 | 描画API | OpenGL 4.6 Core |
 | ゲームエンジン | 使用しない（レンダラ・アニメーション再生・育成ロジックは自作） |
 | ビルド | CMake + Ninja、依存取得は FetchContent |
-| 主な依存 | GLFW / glad / glm / cgltf / stb_image / Dear ImGui / miniaudio / nlohmann-json / Catch2 |
+| 主な依存 | GLFW / glad / glm / cgltf / stb_image / Dear ImGui / miniaudio / nlohmann-json / Jolt Physics / Catch2 |
 | 3Dアセット | Blender 経由で glTF 2.0 (.glb) に統一 |
 
 選定理由は [docs/adr/](docs/adr/) の各ADRを参照。
@@ -36,6 +36,7 @@ Dalmatian-nurture
 ┃   ┣━ core/            育成ロジック：欲求・世話・成長・芸・行動意図・セーブ（OpenGL非依存）
 ┃   ┣━ anim/            glTF読込・スケルトン・アニメーション計算（OpenGL非依存）
 ┃   ┣━ gfx/             OpenGL描画：シェーダ・スキンメッシュ・カメラ・昼夜の光
+┃   ┣━ physics/         当たり判定：移動時のめり込み防止・視線の判定（Jolt を包む、OpenGL非依存）
 ┃   ┣━ platform/        OSとの境界：ウィンドウ・入力・システム時計・音声・保存先パス
 ┃   ┗━ app/             main・ゲームループ・シーン・デバッグUI
 ┣━ shaders/           GLSL
@@ -46,12 +47,13 @@ Dalmatian-nurture
 ┃   ┗━ source/          .blend などの編集元
 ┣━tests/
 ┃   ┣━ core/            core の単体テスト
-┃   ┗━ anim/            anim の単体テスト
+┃   ┣━ anim/            anim の単体テスト
+┃   ┗━ physics/         physics の単体テスト
 ┣━ third_party/glad/  glad の生成物
 ┗━ docs/adr/          決定事項の記録
 ```
 
-各ファイルの一覧と構成のルールは [ADR 0009](docs/adr/0009-module-structure.md) を参照。
+各ファイルの一覧と構成のルールは [ADR 0009](docs/adr/0009-module-structure.md)、`physics` の追加は [ADR 0015](docs/adr/0015-physics-target.md) を参照。
 
 ### モジュールの依存関係
 
@@ -62,17 +64,20 @@ graph TD
     gfx[dalmatian_gfx<br/>OpenGL描画]
     anim[dalmatian_anim<br/>アニメーション計算]
     platform[dalmatian_platform<br/>OSとの境界]
+    physics[dalmatian_physics<br/>当たり判定]
     tests[dalmatian_tests<br/>単体テスト]
 
     app --> core
     app --> gfx
     app --> platform
+    app --> physics
     gfx --> anim
     tests --> core
     tests --> anim
+    tests --> physics
 ```
 
-矢印は依存の向きを表し、逆向きの依存は禁止。`core` と `anim` は OpenGL に依存しないため、描画なしで単体テストできる。
+矢印は依存の向きを表し、逆向きの依存は禁止。`core`・`anim`・`physics` は OpenGL に依存しないため、描画なしで単体テストできる。
 
 ## ドキュメント
 - 決定事項: [docs/adr/](docs/adr/) — 1決定につき1ファイル（[運用ルール](docs/adr/0001-record-decisions-in-adr.md)）

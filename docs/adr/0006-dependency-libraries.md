@@ -1,6 +1,8 @@
 # 0006. 依存ライブラリの構成
 
-- Status: Accepted
+- Status:
+  - Partially superseded by [0009](0009-module-structure.md)（単体テストの対象）
+  - Partially superseded by [0014](0014-physics-jolt.md)（物理演算ライブラリを選定しない部分）
 - Date: 2026-09-25
 
 ## Context
