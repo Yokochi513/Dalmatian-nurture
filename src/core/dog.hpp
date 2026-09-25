@@ -5,6 +5,7 @@
 #include <array>
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string>
 
@@ -29,6 +30,27 @@ inline constexpr std::size_t kCareCount = 6;
 enum class Trick { Sit, Paw, Down, Stay, Spin };
 inline constexpr std::size_t kTrickCount = 5;
 
+// 行動意図（ADR 0037）。決め方は behavior
+enum class IntentKind {
+    Idle, Wander, Sleep, Stretch, Beg, Bark, Greet,  // 自律・家
+    Eat, Petted, Play, Train, PerformTrick,          // 世話への反応
+    Follow, Sniff, Dig,                              // 散歩中
+};
+
+// 行き先の種類（ADR 0019）。座標は app が決める
+enum class Destination { Here, Any, Bowl, Bed, Owner };
+
+enum class NeedKind { Hunger, Exercise, Boredom, Loneliness, Sleepiness };
+
+struct Intent {
+    IntentKind kind = IntentKind::Idle;
+    Destination destination = Destination::Here;
+    NeedKind need = NeedKind::Hunger;  // Beg のとき：何が欲しいか
+    Trick trick = Trick::Sit;          // Train・PerformTrick のとき
+    TimePoint since{};                 // この行動意図になった時刻（UTC）
+    std::uint64_t id = 0;              // 行動意図が変わるたびに増える通し番号
+};
+
 // 世話ごとの記録。クールダウンと1日の上限の判定に使う
 struct CareRecord {
     std::optional<TimePoint> last_done;  // 最後に受け付けた時刻（UTC）
@@ -51,6 +73,8 @@ struct DogState {
     std::chrono::local_days growth_day{};  // growth_today を数えている現地の日付
 
     std::array<double, kTrickCount> trick_proficiency{};  // Trick の順。0〜100、100 で習得
+
+    Intent intent;  // 今の行動意図
 };
 
 // 初回に迎えた子犬の状態。最初からいくつかの世話ができるよう、欲求をある程度高くしておく

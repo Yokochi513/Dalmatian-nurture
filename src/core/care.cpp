@@ -73,6 +73,10 @@ CareAvailability check_care(const DogState& state, Care care, const ClockReading
         return {CareBlock::AlreadyWalking};
     }
 
+    if (state.intent.kind == IntentKind::Sleep) {
+        return {CareBlock::Sleeping};
+    }
+
     if (count_today(state, care, local_day(now)) >= t.daily_limit) {
         return {CareBlock::DailyLimit, until_next_day(now)};
     }

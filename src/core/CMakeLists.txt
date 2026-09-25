@@ -13,6 +13,8 @@ add_library(dalmatian_core STATIC
     needs.cpp
     tricks.hpp
     tricks.cpp
+    behavior.hpp
+    behavior.cpp
     simulation.hpp
     simulation.cpp)
 target_include_directories(dalmatian_core PUBLIC "${PROJECT_SOURCE_DIR}/src")

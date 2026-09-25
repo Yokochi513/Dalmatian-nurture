@@ -145,6 +145,15 @@ TEST_CASE("時計が戻っても、クールダウンの残り時間はクール
     CHECK(result.remaining == 1h);
 }
 
+TEST_CASE("寝ている間は、すべての世話を断る")
+{
+    DogState state = hungry_dog();
+    state.intent.kind = dal::core::IntentKind::Sleep;
+
+    CHECK(check_care(state, Care::Feed, jst(kNoonJst), feed_tuning()).block == CareBlock::Sleeping);
+    CHECK(check_care(state, Care::Pet, jst(kNoonJst), feed_tuning()).block == CareBlock::Sleeping);
+}
+
 TEST_CASE("散歩を始めると散歩中になり、散歩中は散歩を始められない")
 {
     Tuning t;

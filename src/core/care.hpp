@@ -12,6 +12,7 @@ namespace dal::core {
 enum class CareBlock {
     None,            // 実行できる
     AlreadyWalking,  // すでに散歩中（散歩の開始のみ）
+    Sleeping,        // 犬が寝ている
     DailyLimit,      // 今日の上限に達した
     Cooldown,        // クールダウン中
     NotNeeded,       // 対応する欲求が満たされている
@@ -31,7 +32,7 @@ struct CareAvailability {
 
 const CareTuning& tuning_of(const Tuning& tuning, Care care);
 
-// 世話を実行できるか。理由が複数ある場合は、AlreadyWalking・DailyLimit・Cooldown・NotNeeded の順に優先する
+// 世話を実行できるか。理由が複数ある場合は、AlreadyWalking・Sleeping・DailyLimit・Cooldown・NotNeeded の順に優先する
 CareAvailability check_care(const DogState& state, Care care, const ClockReading& now, const Tuning& tuning);
 
 // 世話を実行する。実行できなければ状態を変えずに理由を返す。

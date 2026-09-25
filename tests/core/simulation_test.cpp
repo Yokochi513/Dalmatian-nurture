@@ -188,6 +188,61 @@ TEST_CASE("散歩中に終了していた場合、resume で散歩を終える")
     CHECK_FALSE(sim.state().walking);
 }
 
+TEST_CASE("resume と end_walk で行動意図は Greet になる")
+{
+    Tuning t = hunger_per_second();
+    t.walk.min_need = 0.0;
+    FakeClock clock{kStart};
+    Simulation sim{clock, DogState{}, kStart, t};
+
+    sim.resume();
+    CHECK(sim.state().intent.kind == dal::core::IntentKind::Greet);
+
+    sim.do_care(dal::core::Care::Walk);
+    CHECK(sim.state().intent.kind == dal::core::IntentKind::Follow);
+
+    sim.end_walk();
+    CHECK(sim.state().intent.kind == dal::core::IntentKind::Greet);
+}
+
+TEST_CASE("世話を受け付けると行動意図が切り替わり、終了通知で次の意図になる")
+{
+    Tuning t = hunger_per_second();
+    t.hunger_per_hour = 0.0;
+    t.feed.min_need = 0.0;
+    FakeClock clock{kStart};
+    Simulation sim{clock, DogState{}, kStart, t};
+
+    sim.do_care(dal::core::Care::Feed);
+    const auto eat = sim.state().intent;
+    CHECK(eat.kind == dal::core::IntentKind::Eat);
+
+    clock.advance(3s);
+    sim.finish_intent(eat.id);
+    CHECK(sim.state().intent.kind == dal::core::IntentKind::Idle);
+}
+
+TEST_CASE("寝ている間は眠気が減り、起きたら伸びをする")
+{
+    Tuning t = hunger_per_second();
+    t.hunger_per_hour = 0.0;
+    t.sleep_recovery_per_hour = 3600.0;  // 1秒に 1 減る
+    FakeClock clock{kStart};
+    DogState state;
+    state.needs.sleepiness = 90.0;
+    Simulation sim{clock, state, kStart, t};
+
+    clock.advance(1s);
+    sim.step();
+    CHECK(sim.state().intent.kind == dal::core::IntentKind::Sleep);
+
+    clock.advance(59s);  // 1秒刻みごとに見直すため、60 秒では不在扱いにならない
+    sim.step();
+    // 1秒目は起きていて（眠気は増えない設定）、その刻みの最後に寝始める。その後 59 秒で 90 → 31
+    CHECK(sim.state().needs.sleepiness == Approx(31.0));
+    CHECK(sim.state().intent.kind == dal::core::IntentKind::Sleep);
+}
+
 TEST_CASE("最終終了時刻が未来なら resume は何もしない")
 {
     FakeClock clock{kStart};

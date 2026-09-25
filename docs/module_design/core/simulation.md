@@ -20,7 +20,7 @@ public:
     CareResult do_care(Care care);               // 先に step() で時間を進めてから判定・実行する
     CareResult do_trick(Care care, Trick trick); // しつける・芸をさせる（tricks.md）
     std::vector<Event> end_walk();  // 散歩から家に戻ったとき
-    void finish_intent(std::uint64_t id);  // 動作の意図の演出が終わったとき（behavior.md）
+    std::vector<Event> finish_intent(std::uint64_t id);  // 動作の意図の演出が終わったとき（behavior.md）
     double time_of_day() const;            // 一日の中の時刻（現地時刻の時。ADR 0024）
     const DogState& state() const;
 };
@@ -67,11 +67,12 @@ struct CareResult {
 ```
 
 - `end_walk()` も先に `step()` で時間を進めてから散歩を終え、行動意図を Greet にし、`step()` で起きた出来事を返す
-- `finish_intent(id)` は先に `step()` で時間を進めてから、[behavior.md](behavior.md) の `finish_intent` を呼ぶ
+- `finish_intent(id)` は先に `step()` で時間を進めてから、[behavior.md](behavior.md) の `finish_intent` を呼び、
+  `step()` で起きた出来事を返す
 
 ## 出来事の受け渡し
 
-- `resume()`・`step()`・`do_care()`・`end_walk()` は、起きた出来事（`Event`、[growth.md](growth.md)）のリストを返す（ADR 0020）
+- `resume()`・`step()`・`do_care()`・`do_trick()`・`end_walk()`・`finish_intent()` は、起きた出来事（`Event`、[growth.md](growth.md)）のリストを返す（ADR 0020）
 - 不在中の出来事は「おかえり」の表示に使う（ADR 0011）
 - 今のところ出来事は世話による成長（`Grew`）だけで、`resume()` と `step()` は空のリストを返す。
   時間の経過で起きる出来事は、行動意図や芸の設計で加わる

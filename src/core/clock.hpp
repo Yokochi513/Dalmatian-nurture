@@ -25,6 +25,14 @@ inline std::chrono::local_days local_day(const ClockReading& reading)
     return std::chrono::floor<std::chrono::days>(local_now(reading));
 }
 
+// 一日の中の時刻（現地時刻の時、0〜24 の小数。ADR 0024）
+inline double hours_of_day(const ClockReading& reading)
+{
+    const auto now = local_now(reading);
+    const auto since_midnight = now - std::chrono::floor<std::chrono::days>(now);
+    return std::chrono::duration<double, std::ratio<3600>>(since_midnight).count();
+}
+
 // 時計のインターフェース。実装は platform（本番）・app（デバッグ）・tests（テスト）に置く
 class Clock {
 public:

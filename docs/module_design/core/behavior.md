@@ -1,11 +1,13 @@
 # core / 行動意図（behavior）
 
-ソース：`src/core/behavior.hpp`、`src/core/behavior.cpp`　概要：[core.md](../core.md)
+ソース：`src/core/behavior.hpp`、`src/core/behavior.cpp`（型は `src/core/dog.hpp`）　概要：[core.md](../core.md)
 
 犬が次に何をしたいか（行動意図）と、どこへ行きたいか（行き先の種類）を決める（ADR 0009・0019・0037）。
 行動意図をアニメーションと移動に変えるのは `app` の役目。
 
 ## 行動意図と行き先の種類（ADR 0037）
+
+型は `DogState` のメンバーになるため `dog.hpp` に置く（`behavior.hpp` に置くとヘッダが互いを読み込むため）。
 
 ```cpp
 enum class IntentKind {
@@ -107,13 +109,14 @@ bool is_night(double hours, const Tuning& tuning);  // behavior.hpp
 ## 関数
 
 ```cpp
-bool is_action(IntentKind kind);  // 動作の意図か
+bool is_action(IntentKind kind);             // 動作の意図か
+Destination destination_of(IntentKind kind); // 意図の種類ごとの行き先（上の表）
 
 // 規則で次の意図を決める（今の意図が続いた時間も使う）。同じなら今の意図をそのまま返す
 Intent decide_intent(const DogState& state, const ClockReading& now, const Tuning& tuning);
 
-// 意図を切り替える（id を増やし、since を now にする）
-void set_intent(DogState& state, IntentKind kind, Destination destination, const ClockReading& now);
+// 意図を切り替える（id を増やし、since を now にし、行き先は destination_of で決める）
+void set_intent(DogState& state, IntentKind kind, const ClockReading& now);
 
 // 1秒刻みごとに呼ぶ。状態の意図を見直し、長すぎる動作の意図を終わらせる
 void update_intent(DogState& state, const ClockReading& now, const Tuning& tuning);

@@ -21,6 +21,22 @@ struct GrowthTuning {
     double daily_cap = 150.0;  // 1日にたまる成長ポイントの上限
 };
 
+// 行動意図の数値
+struct BehaviorTuning {
+    double sleep_threshold_day = 80.0;    // 昼に寝始める眠気
+    double sleep_threshold_night = 40.0;  // 夜に寝始める眠気（ADR 0032）
+    double night_start = 21.0;            // 夜の始まり（現地時刻の時）
+    double night_end = 6.0;               // 夜の終わり（現地時刻の時）
+    double wake_threshold = 5.0;          // 起きる眠気
+    double beg_threshold = 60.0;          // おねだりを始める欲求
+    std::chrono::seconds bark_after{std::chrono::minutes{2}};  // おねだりが続いたら吠えるまで
+    double wander_threshold = 30.0;       // うろうろし始める退屈
+    std::chrono::seconds idle_before_wander{20};  // うろうろする前にじっとしている時間
+    std::chrono::seconds sniff_interval{30};      // 散歩中に匂いを嗅ぐ（または掘る）間隔
+    double dig_threshold = 60.0;                  // 散歩中に匂いを嗅ぐ代わりに掘る退屈
+    std::chrono::seconds max_action_duration{60}; // 終了通知が来なくても動作の意図を終わらせる時間
+};
+
 // バランスの数値。既定値は仮の値で、バランス調整の中で決める。
 // テストは既定値に依存せず、必要な数値を明示する
 struct Tuning {
@@ -56,6 +72,9 @@ struct Tuning {
 
     // 成長
     GrowthTuning growth;
+
+    // 行動意図
+    BehaviorTuning behavior;
 };
 
 } // namespace dal::core

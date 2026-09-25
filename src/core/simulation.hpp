@@ -7,6 +7,7 @@
 #include "core/tuning.hpp"
 
 #include <chrono>
+#include <cstdint>
 #include <vector>
 
 namespace dal::core {
@@ -24,7 +25,7 @@ public:
     Simulation(const Clock& clock, DogState state, TimePoint last_saved, Tuning tuning = {});
 
     // 起動時に1回呼ぶ。最終終了時刻からの経過を不在として一括で進める（ADR 0022）。
-    // 散歩中に終了していた場合は散歩を終える（ADR 0029）
+    // 散歩中に終了していた場合は散歩を終える（ADR 0029）。行動意図は Greet にする
     std::vector<Event> resume();
 
     // 毎フレーム呼ぶ。前回からの経過を1秒刻みで進め、端数は持ち越す（ADR 0021）
@@ -34,24 +35,31 @@ public:
     CareAvailability availability(Care care) const;
     CareAvailability availability(Care care, Trick trick) const;
 
-    // 世話を実行する。先に step() で時間を進めてから判定し、受け付けたら成長ポイントを足す。
+    // 世話を実行する。先に step() で時間を進めてから判定し、受け付けたら成長ポイントを足して行動意図を切り替える。
     // しつける・芸をさせるは do_trick を使う（do_care では TrickNotSpecified で断る）
     CareResult do_care(Care care);
     CareResult do_trick(Care care, Trick trick);
 
-    // 散歩から家に戻ったときに呼ぶ（ADR 0018）
+    // 散歩から家に戻ったときに呼ぶ（ADR 0018）。行動意図は Greet にする
     std::vector<Event> end_walk();
+
+    // 動作の意図の演出が終わったときに呼ぶ（ADR 0016）。id が今の意図と違えば無視する
+    std::vector<Event> finish_intent(std::uint64_t id);
+
+    // 一日の中の時刻（現地時刻の時、0〜24。ADR 0024）
+    double time_of_day() const;
 
     const DogState& state() const { return state_; }
 
 private:
-    void tick();
-    void add_growth_for(Care care, const ClockReading& now, std::vector<Event>& events);
+    void tick(const ClockReading& at);
+    void after_care(Care care, Trick trick, const ClockReading& now, std::vector<Event>& events);
 
     const Clock& clock_;
     DogState state_;
     Tuning tuning_;
-    TimePoint last_processed_;
+    TimePoint last_processed_;  // 前回 step() などで時計を読んだ時刻
+    TimePoint tick_time_;       // 最後に処理した1秒刻みの時刻
     std::chrono::milliseconds remainder_{0};
 };
 
