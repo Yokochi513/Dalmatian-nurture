@@ -1,5 +1,8 @@
 # core・anim・physics の単体テスト（ADR 0009・0015）
 add_executable(dalmatian_tests
+    core/fake_clock.hpp
+    core/needs_test.cpp
+    core/simulation_test.cpp
     physics/jolt_runtime_test.cpp)
 target_link_libraries(dalmatian_tests PRIVATE
     dalmatian_core

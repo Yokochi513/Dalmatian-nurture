@@ -3,7 +3,7 @@
 `dalmatian_core`（`src/core/`、名前空間 `dal::core`）の設計。
 モジュールをまたぐ決定は [docs/adr/](../adr/) にあり、ここではそれを前提に core の内部を決める。
 
-- 状態: 設計中（時計・犬の状態・欲求・時間の進め方まで）
+- 状態: 時計・犬の状態・欲求・時間の進め方は設計・実装済み
 - 未設計: 世話（care）、成長（growth）、芸（tricks）、行動意図（behavior）、セーブ（save）
 
 ## 責務
@@ -12,6 +12,7 @@
 - 犬の行動意図（何をしたいか・どこへ行きたいか）を決める
 - セーブデータ（JSON）との相互変換を行う
 - 描画・アニメーション・空間・OS を知らない。依存は標準C++ と nlohmann/json のみ（ADR 0009）
+- OS に依存する実装（時計など）は `platform` が core のインターフェースを実装して提供する（ADR 0042）
 
 ## 設計の方針
 
@@ -29,7 +30,7 @@
 | `clock.hpp` | 時計のインターフェース | 本書 |
 | `dog.hpp` | 犬の状態（`DogState`）と関連する列挙 | 本書（一部） |
 | `tuning.hpp` | バランスの数値（`Tuning`） | 本書（一部） |
-| `needs.hpp/.cpp` | 欲求の時間変化、不在中の一括計算、機嫌の計算 | 本書 |
+| `needs.hpp/.cpp` | 欲求の時間変化、なつき度の低下、不在中の一括計算、機嫌の計算 | 本書 |
 | `simulation.hpp/.cpp` | 1秒刻みで進める入口、不在からの復帰 | 本書（一部） |
 | `care.hpp/.cpp` | 世話の可否と効果、クールダウン、1日の上限 | 未設計 |
 | `growth.hpp/.cpp` | 成長ポイントと成長段階 | 未設計 |
@@ -115,6 +116,22 @@ struct DogState {
 
 ## 欲求（needs）
 
+### 関数
+
+```cpp
+enum class Activity { Awake, Sleeping, Walking };
+using Duration = std::chrono::duration<double>;
+
+void advance_needs(Needs&, Activity, Duration elapsed, const Tuning&);          // 起動中の変化
+void apply_neglect(double& affection, const Needs&, Duration elapsed, const Tuning&); // 起動中のなつき度の低下
+void apply_absence(DogState&, Duration elapsed, const Tuning&);                 // 不在中の一括計算
+double max_need(const Needs&);
+double mood(const Needs&);
+```
+
+1秒刻みごとに `advance_needs` → `apply_neglect` の順に呼ぶ（なつき度の判定には更新後の欲求を使う）。
+`Activity` は、行動意図（behavior）と散歩の設計までは常に `Awake` とする。
+
 ### 起動中の変化（1秒刻みごと）
 
 | 欲求 | 起きている間 | 寝ている間（Sleep） | 散歩中 |
@@ -143,7 +160,10 @@ struct DogState {
 - **眠気**：留守中は寝ていたものとして、`max(sleepiness − sleep_recovery × elapsed, 0)` で減る
 - **なつき度**：各欲求がしきい値に達する時刻は一定の変化率から計算できるため、「いずれかの欲求が
   しきい値以上だった時間」を求め、その時間に応じて下げる。1回の不在での低下は
-  `offline_affection_loss_max`（例：10）まで
+  `offline_affection_loss_max`（例：10）まで。不在前の欲求から計算するため、欲求より先に更新する
+  - 増える4つの欲求：最初にしきい値に達した時刻 `b` から後はずっとしきい値以上（上限がしきい値未満なら達しない）
+  - 減る眠気：最初からしきい値以上なら、下回る時刻 `a` までの間
+  - しきい値以上だった時間 ＝ `[0, a)` と `[b, elapsed)` の和集合の長さ（重なりは二重に数えない）
 - 行動意図は進めず、復帰後に決め直す
 
 1秒刻みを同じ時間だけ繰り返した結果と、不在の一括計算の結果は一般には一致しない（不在中は上限と眠気の
@@ -162,50 +182,45 @@ mood = 100 − （5つの欲求の平均）
 - `Simulation` は前回処理した時刻と、1秒に満たない端数を持つ（ADR 0021）
 - `step()` は時計を読み、前回からの経過を1秒刻みで処理し、端数を持ち越す
 - 経過がマイナス（時計が戻った）なら 0 として扱う（ADR 0022）
-- **起動中でも、前回から `Tuning::offline_gap`（例：60秒）以上空いた場合は不在として扱う**。
-  起動したまま PC がスリープした場合などに、1秒刻みで何時間分も処理しないため
+- **起動中でも、前回から `Tuning::offline_gap`（10分）以上空いた場合は不在として扱う**。
+  起動したまま PC がスリープした場合などに、1秒刻みで何時間分も処理しないため。
+  デバッグ時計の ×3600（ADR 0025）では1フレームで約60秒進むため、それが不在扱いにならない長さにする
 - 起動時は `resume()` を1回呼び、セーブの最終終了時刻からの経過を不在の一括計算で進める。
-  不在中の出来事を返し、「おかえり」の表示に使う（ADR 0011・0020）
+  最終終了時刻が未来（時計が戻った）なら何もしない
 
 ```cpp
 class Simulation {
 public:
     Simulation(const Clock& clock, DogState state, TimePoint last_saved, Tuning tuning = {});
 
-    std::vector<Event> resume();  // 起動時に1回
-    std::vector<Event> step();    // 毎フレーム
+    void resume();  // 起動時に1回
+    void step();    // 毎フレーム
     const DogState& state() const;
     // 世話の命令・可否の問い合わせ・行動の終了通知は care と behavior の設計で追加する
 };
 ```
 
-`Event` の種類は、成長・芸・世話の設計で決める。
+`resume()` と `step()` は、最初の出来事（成長・芸の習得など）を設計する時点で、出来事のリストを返す形に
+変える（ADR 0020）。不在中の出来事は「おかえり」の表示に使う（ADR 0011）。
 
 ## Tuning（本書で決めた範囲）
 
-```cpp
-struct Tuning {
-    // 欲求の変化率（1時間あたり）
-    double hunger_per_hour;
-    double exercise_per_hour;
-    double boredom_per_hour;
-    double loneliness_per_hour;
-    double sleepiness_per_hour;
-    double sleep_recovery_per_hour;     // Sleep 中・不在中の眠気の減り
-    double walk_exercise_per_hour;      // 散歩中の運動の減り
+既定値は仮の値で、バランス調整の中で決める。
 
-    // 放置
-    double neglect_threshold;           // なつき度が下がり始める欲求の値
-    double affection_loss_per_hour;
-    double offline_need_cap;            // 不在中に欲求が届く上限
-    double offline_affection_loss_max;  // 1回の不在でのなつき度の低下の上限
-
-    // 時間
-    std::chrono::seconds offline_gap;   // これ以上空いたら不在として扱う
-};
-```
-
-既定値はバランス調整の中で決める。
+| 項目 | 仮の既定値 | 意味 |
+|---|---|---|
+| `hunger_per_hour` | 12.5 | 空腹の増え方（8時間で 0 → 100） |
+| `exercise_per_hour` | 8.0 | 運動の増え方 |
+| `boredom_per_hour` | 16.0 | 退屈の増え方 |
+| `loneliness_per_hour` | 10.0 | 寂しさの増え方 |
+| `sleepiness_per_hour` | 6.0 | 眠気の増え方 |
+| `sleep_recovery_per_hour` | 12.5 | Sleep 中・不在中の眠気の減り |
+| `walk_exercise_per_hour` | 180.0 | 散歩中の運動の減り（20分で 60） |
+| `neglect_threshold` | 80.0 | なつき度が下がり始める欲求の値 |
+| `affection_loss_per_hour` | 1.0 | なつき度の下がり方 |
+| `offline_need_cap` | 80.0 | 不在中に欲求が届く上限 |
+| `offline_affection_loss_max` | 10.0 | 1回の不在でのなつき度の低下の上限 |
+| `offline_gap` | 10分 | 前回の `step()` からこれ以上空いたら不在として扱う |
 
 ## テスト方針
 

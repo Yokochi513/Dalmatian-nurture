@@ -1,6 +1,6 @@
 # 0015. dalmatian_physics ターゲットを追加し、Jolt を閉じ込める
 
-- Status: Accepted
+- Status: Partially superseded by [0042](0042-platform-depends-on-core.md)（依存方向）
 - Date: 2026-09-25
 
 ## Context

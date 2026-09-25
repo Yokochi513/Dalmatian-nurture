@@ -53,7 +53,7 @@ Dalmatian-nurture
 ┗━ docs/adr/          決定事項の記録
 ```
 
-各ファイルの一覧と構成のルールは [ADR 0009](docs/adr/0009-module-structure.md)、`physics` の追加は [ADR 0015](docs/adr/0015-physics-target.md) を参照。
+各ファイルの一覧と構成のルールは [ADR 0009](docs/adr/0009-module-structure.md)、`physics` の追加は [ADR 0015](docs/adr/0015-physics-target.md)、`platform` から `core` への依存は [ADR 0042](docs/adr/0042-platform-depends-on-core.md) を参照。
 
 ### モジュールの依存関係
 
@@ -71,6 +71,7 @@ graph TD
     app --> gfx
     app --> platform
     app --> physics
+    platform --> core
     gfx --> anim
     tests --> core
     tests --> anim
