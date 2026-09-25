@@ -13,11 +13,11 @@ public:
     // last_saved: セーブの最終終了時刻（ADR 0026）
     Simulation(const Clock& clock, DogState state, TimePoint last_saved, Tuning tuning = {});
 
-    void resume();  // 起動時に1回。散歩中だったら散歩を終える
-    void step();    // 毎フレーム
+    std::vector<Event> resume();  // 起動時に1回。散歩中だったら散歩を終える
+    std::vector<Event> step();    // 毎フレーム
     CareAvailability availability(Care care) const;  // メニューの表示用
-    CareAvailability do_care(Care care);  // 先に step() で時間を進めてから判定・実行する
-    void end_walk();                      // 散歩から家に戻ったとき
+    CareResult do_care(Care care);  // 先に step() で時間を進めてから判定・実行する
+    void end_walk();                // 散歩から家に戻ったとき
     const DogState& state() const;
     // 行動の終了通知は behavior の設計で追加する
 };
@@ -45,12 +45,25 @@ public:
 - `availability()` は、メニューの表示のために現在の状態で判定する（状態を変えない）
 - `do_care()` は、先に `step()` で時間を進めてから判定・実行する。直前に `step()` を呼んでいなくても、
   最新の欲求で判定できる（[care.md](care.md)）
+- 世話を受け付けたら、その世話の `growth_points` を `add_growth` で足す（[growth.md](growth.md)）。
+  `care` は成長を知らず、組み合わせるのは `Simulation` の役目とする
+- `do_care()` は判定結果と出来事をまとめて返す
+
+```cpp
+struct CareResult {
+    CareAvailability availability;
+    std::vector<Event> events;  // step() で起きた出来事と、世話による成長など
+};
+```
+
 - `end_walk()` も先に `step()` で時間を進めてから散歩を終える
 
 ## 出来事の受け渡し
 
-`resume()` と `step()` は、最初の出来事（成長・芸の習得など）を設計する時点で、出来事のリストを返す形に
-変える（ADR 0020）。不在中の出来事は「おかえり」の表示に使う（ADR 0011）。
+- `resume()`・`step()`・`do_care()` は、起きた出来事（`Event`、[growth.md](growth.md)）のリストを返す（ADR 0020）
+- 不在中の出来事は「おかえり」の表示に使う（ADR 0011）
+- 今のところ出来事は世話による成長（`Grew`）だけで、`resume()` と `step()` は空のリストを返す。
+  時間の経過で起きる出来事は、行動意図や芸の設計で加わる
 
 ## Tuning
 

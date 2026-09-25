@@ -12,7 +12,7 @@
 | 追加するもの | 設計書 |
 |---|---|
 | しつける（Train）・芸をさせる（PerformTrick） | tricks.md |
-| 受け付けたときの成長ポイント | growth.md |
+| 受け付けたときの成長ポイントを足す処理（`Simulation` が行う） | [growth.md](growth.md) |
 | 「寝ているので不可」、受け付けたときの行動意図の切り替え（ADR 0016） | behavior.md |
 
 ## 世話と欲求
@@ -80,15 +80,15 @@ CareAvailability apply_care(DogState&, Care, const ClockReading& now, const Tuni
 
 世話ごとの数値（`CareTuning`）。既定値は仮の値で、バランス調整の中で決める。
 
-| 世話 | `cooldown` | `daily_limit` | `min_need` | `relief` | `affection_gain` |
-|---|---|---|---|---|---|
-| `feed` | 3時間 | 3 | 30 | 70 | 1 |
-| `pet` | 10分 | 10 | 10 | 40 | 2 |
-| `play` | 30分 | 6 | 20 | 50 | 2 |
-| `walk` | 2時間 | 3 | 30 | 0（時間で減る） | 3 |
+| 世話 | `cooldown` | `daily_limit` | `min_need` | `relief` | `affection_gain` | `growth_points` |
+|---|---|---|---|---|---|---|
+| `feed` | 3時間 | 3 | 30 | 70 | 1 | 10 |
+| `pet` | 10分 | 10 | 10 | 40 | 2 | 10 |
+| `play` | 30分 | 6 | 20 | 50 | 2 | 10 |
+| `walk` | 2時間 | 3 | 30 | 0（時間で減る） | 3 | 10 |
 
 仮の数値では、最初の10分でできる世話はごはん・なでる・遊ぶ・散歩の各1回程度になる。
-ADR 0036（子犬 → 若犬は初回の10分以内）を満たす成長ポイントの配分は growth.md で決める。
+`growth_points` の配分は [growth.md](growth.md)（子犬 → 若犬は初回の10分以内、ADR 0036）。
 
 ## 検討して採らなかった案
 

@@ -37,7 +37,11 @@ struct DogState {
     std::array<CareRecord, kCareCount> care_records{};  // Care の順（care.md）
     std::chrono::local_days care_day{};  // count_today を数えている現地の日付（care.md）
     bool walking = false;                // 散歩中か（ADR 0018、care.md）
-    // 各部品の設計で追加する：成長ポイント（growth）、芸の習熟度（tricks）、行動意図（behavior）
+
+    double growth_points = 0.0;            // 累計の成長ポイント（growth.md）
+    double growth_today = 0.0;             // growth_day の日にたまった量（growth.md）
+    std::chrono::local_days growth_day{};  // growth_today を数えている現地の日付（growth.md）
+    // 各部品の設計で追加する：芸の習熟度（tricks）、行動意図（behavior）
 };
 
 DogState new_dog(std::string name);  // 初回に迎えた子犬の状態
