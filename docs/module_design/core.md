@@ -33,7 +33,7 @@
 | `simulation.hpp/.cpp` | 1秒刻みで進める入口、不在からの復帰、世話の入口 | [simulation.md](core/simulation.md) | 実装済み（部品の追加に合わせて拡張） |
 | `tuning.hpp` | バランスの数値（`Tuning`） | 各部品の設計書 | — |
 | `growth.hpp/.cpp`、`event.hpp` | 成長ポイントと成長段階、出来事 | [growth.md](core/growth.md) | 実装済み |
-| `tricks.hpp/.cpp` | 芸の習熟度と習得、しつける・芸をさせる | tricks.md | 未設計 |
+| `tricks.hpp/.cpp` | 芸の習熟度と習得、しつける・芸をさせる | [tricks.md](core/tricks.md) | 設計済み |
 | `behavior.hpp/.cpp` | 行動意図の決定、行動の終了通知、寝ている間 | behavior.md | 未設計 |
 | `save.hpp/.cpp` | JSON との相互変換、形式の番号と変換 | save.md | 未設計 |
 

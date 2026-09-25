@@ -15,8 +15,10 @@ public:
 
     std::vector<Event> resume();  // 起動時に1回。散歩中だったら散歩を終える
     std::vector<Event> step();    // 毎フレーム
-    CareAvailability availability(Care care) const;  // メニューの表示用
-    CareResult do_care(Care care);  // 先に step() で時間を進めてから判定・実行する
+    CareAvailability availability(Care care) const;               // メニューの表示用
+    CareAvailability availability(Care care, Trick trick) const;  // 芸を指定した判定（tricks.md）
+    CareResult do_care(Care care);               // 先に step() で時間を進めてから判定・実行する
+    CareResult do_trick(Care care, Trick trick); // しつける・芸をさせる（tricks.md）
     std::vector<Event> end_walk();  // 散歩から家に戻ったとき
     const DogState& state() const;
     // 行動の終了通知は behavior の設計で追加する
@@ -48,6 +50,9 @@ public:
 - 世話を受け付けたら、その世話の `growth_points` を `add_growth` で足す（[growth.md](growth.md)）。
   `care` は成長を知らず、組み合わせるのは `Simulation` の役目とする
 - `do_care()` は判定結果と出来事をまとめて返す
+- しつける・芸をさせるは `do_trick(care, trick)` で実行する。`do_care(Train)` のように芸を指定しなければ
+  `TrickNotSpecified` で断る。受け付けたら `do_care()` と同じく成長ポイントを足し、習得の出来事
+  （`LearnedTrick`）も返す
 
 ```cpp
 struct CareResult {

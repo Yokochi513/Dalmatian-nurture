@@ -21,7 +21,8 @@ struct Needs {
 
 enum class GrowthStage { Puppy, Young, Adult };
 
-enum class Care { Feed, Pet, Play, Walk };  // care.md
+enum class Care { Feed, Pet, Play, Walk, Train, PerformTrick };  // care.md・tricks.md
+enum class Trick { Sit, Paw, Down, Stay, Spin };                 // tricks.md
 
 struct CareRecord {
     std::optional<TimePoint> last_done;  // 最後に受け付けた時刻（UTC）
@@ -41,7 +42,9 @@ struct DogState {
     double growth_points = 0.0;            // 累計の成長ポイント（growth.md）
     double growth_today = 0.0;             // growth_day の日にたまった量（growth.md）
     std::chrono::local_days growth_day{};  // growth_today を数えている現地の日付（growth.md）
-    // 各部品の設計で追加する：芸の習熟度（tricks）、行動意図（behavior）
+
+    std::array<double, kTrickCount> trick_proficiency{};  // Trick の順。100 で習得（tricks.md）
+    // 各部品の設計で追加する：行動意図（behavior）
 };
 
 DogState new_dog(std::string name);  // 初回に迎えた子犬の状態

@@ -42,13 +42,14 @@
 
 ```cpp
 enum class EventKind {
-    Grew,  // 成長した。stage に新しい段階
-    // 芸の習得（LearnedTrick）などは各部品の設計で追加する
+    Grew,          // 成長した。stage に新しい段階
+    LearnedTrick,  // 芸を習得した。trick に芸（tricks.md）
 };
 
 struct Event {
     EventKind kind;
     GrowthStage stage = GrowthStage::Puppy;  // Grew のとき
+    Trick trick = Trick::Sit;                // LearnedTrick のとき
 };
 ```
 

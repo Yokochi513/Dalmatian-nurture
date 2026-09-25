@@ -7,11 +7,12 @@
 ## 範囲
 
 本書で扱う世話は **ごはん（Feed）・なでる（Pet）・遊ぶ（Play）・散歩（Walk）**。
-次は各部品の設計で追加する。
+しつける（Train）・芸をさせる（PerformTrick）も `Care` の種類で、本書の判定と記録の仕組みを使うが、
+芸ごとの判定と効果は [tricks.md](tricks.md) で扱う。次は各部品の設計で追加する。
 
 | 追加するもの | 設計書 |
 |---|---|
-| しつける（Train）・芸をさせる（PerformTrick） | tricks.md |
+| しつける（Train）・芸をさせる（PerformTrick）の芸ごとの判定と効果 | [tricks.md](tricks.md) |
 | 受け付けたときの成長ポイントを足す処理（`Simulation` が行う） | [growth.md](growth.md) |
 | 「寝ているので不可」、受け付けたときの行動意図の切り替え（ADR 0016） | behavior.md |
 
@@ -23,6 +24,8 @@
 | Pet | 寂しさ | 同上 |
 | Play | 退屈 | 同上 |
 | Walk | 運動 | 受け付けると散歩中になり、散歩中の時間に応じて減る（ADR 0018） |
+| Train | 退屈 | `relief` だけ減る。芸の習熟度は [tricks.md](tricks.md) |
+| PerformTrick | 退屈 | `relief` だけ減る。[tricks.md](tricks.md) |
 
 受け付けたときは、どの世話でもなつき度が `affection_gain` だけ上がる。
 物と世話の対応（餌皿 → ごはん など）は `app` が持つ（ADR 0017）。
@@ -43,6 +46,7 @@
 - 時計が戻って最終時刻が未来になっても、クールダウンの残り時間は `cooldown` を超えない
 - `NotNeeded` は、欲求が低いのに世話を繰り返して成長ポイントを稼ぐことも防ぐ
 - 実行時（`apply_care`）も同じ判定を行い、実行できなければ状態を変えずに理由を返す
+- 芸を指定した判定（`TrickLocked` など）は [tricks.md](tricks.md)。芸ごとの判定を先に行い、その後に本書の判定を行う
 
 ## 1日の回数の数え方
 
@@ -61,7 +65,10 @@
 ## 関数
 
 ```cpp
-enum class CareBlock { None, AlreadyWalking, DailyLimit, Cooldown, NotNeeded };
+enum class CareBlock {
+    None, AlreadyWalking, DailyLimit, Cooldown, NotNeeded,
+    TrickLocked, TrickLearned, TrickNotLearned, TrickNotSpecified,  // tricks.md
+};
 
 struct CareAvailability {
     CareBlock block = CareBlock::None;
@@ -86,6 +93,7 @@ CareAvailability apply_care(DogState&, Care, const ClockReading& now, const Tuni
 | `pet` | 10分 | 10 | 10 | 40 | 2 | 10 |
 | `play` | 30分 | 6 | 20 | 50 | 2 | 10 |
 | `walk` | 2時間 | 3 | 30 | 0（時間で減る） | 3 | 10 |
+| `train`・`perform_trick` | [tricks.md](tricks.md) の表 | | | | | |
 
 仮の数値では、最初の10分でできる世話はごはん・なでる・遊ぶ・散歩の各1回程度になる。
 `growth_points` の配分は [growth.md](growth.md)（子犬 → 若犬は初回の10分以内、ADR 0036）。
