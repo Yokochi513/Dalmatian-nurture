@@ -11,6 +11,14 @@ struct CareTuning {
     double min_need = 0.0;             // 対応する欲求がこれ未満なら「満たされている」として断る
     double relief = 0.0;               // 対応する欲求を減らす量（散歩は時間で減るため 0）
     double affection_gain = 0.0;       // 受け付けたときのなつき度の上がり幅
+    double growth_points = 0.0;        // 受け付けたときにたまる成長ポイント
+};
+
+// 成長の数値（ADR 0036）
+struct GrowthTuning {
+    double young_at = 30.0;    // 若犬になる累計の成長ポイント（初回の10分以内）
+    double adult_at = 450.0;   // 成犬になる累計の成長ポイント（数日）
+    double daily_cap = 150.0;  // 1日にたまる成長ポイントの上限
 };
 
 // バランスの数値。既定値は仮の値で、バランス調整の中で決める。
@@ -36,10 +44,13 @@ struct Tuning {
     std::chrono::seconds offline_gap{std::chrono::minutes{10}};
 
     // 世話
-    CareTuning feed{std::chrono::hours{3}, 3, 30.0, 70.0, 1.0};
-    CareTuning pet{std::chrono::minutes{10}, 10, 10.0, 40.0, 2.0};
-    CareTuning play{std::chrono::minutes{30}, 6, 20.0, 50.0, 2.0};
-    CareTuning walk{std::chrono::hours{2}, 3, 30.0, 0.0, 3.0};
+    CareTuning feed{std::chrono::hours{3}, 3, 30.0, 70.0, 1.0, 10.0};
+    CareTuning pet{std::chrono::minutes{10}, 10, 10.0, 40.0, 2.0, 10.0};
+    CareTuning play{std::chrono::minutes{30}, 6, 20.0, 50.0, 2.0, 10.0};
+    CareTuning walk{std::chrono::hours{2}, 3, 30.0, 0.0, 3.0, 10.0};
+
+    // 成長
+    GrowthTuning growth;
 };
 
 } // namespace dal::core

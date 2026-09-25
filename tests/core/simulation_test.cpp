@@ -101,7 +101,41 @@ TEST_CASE("do_care は時間を進めてから判定する")
     Simulation sim{clock, state, kStart, t};
 
     clock.advance(5s);  // step() を呼ばなくても、do_care の中で空腹が 30 になる
-    CHECK(sim.do_care(dal::core::Care::Feed).available());
+    CHECK(sim.do_care(dal::core::Care::Feed).availability.available());
+}
+
+TEST_CASE("世話を受け付けると成長ポイントがたまり、成長したら出来事を返す")
+{
+    Tuning t = hunger_per_second();
+    t.feed.min_need = 0.0;
+    t.feed.growth_points = 10.0;
+    t.pet.min_need = 0.0;
+    t.pet.growth_points = 10.0;
+    t.growth.young_at = 20.0;
+    FakeClock clock{kStart};
+    Simulation sim{clock, DogState{}, kStart, t};
+
+    const auto first = sim.do_care(dal::core::Care::Feed);
+    CHECK(first.events.empty());
+    CHECK(sim.state().growth_points == Approx(10.0));
+
+    const auto second = sim.do_care(dal::core::Care::Pet);
+    REQUIRE(second.events.size() == 1);
+    CHECK(second.events[0].kind == dal::core::EventKind::Grew);
+    CHECK(second.events[0].stage == dal::core::GrowthStage::Young);
+    CHECK(sim.state().stage == dal::core::GrowthStage::Young);
+}
+
+TEST_CASE("断られた世話では成長ポイントはたまらない")
+{
+    Tuning t = hunger_per_second();
+    t.feed.min_need = 50.0;
+    FakeClock clock{kStart};
+    Simulation sim{clock, DogState{}, kStart, t};
+
+    const auto result = sim.do_care(dal::core::Care::Feed);
+    CHECK_FALSE(result.availability.available());
+    CHECK(sim.state().growth_points == Approx(0.0));
 }
 
 TEST_CASE("散歩中は運動の欲求が時間とともに減り、end_walk で止まる")

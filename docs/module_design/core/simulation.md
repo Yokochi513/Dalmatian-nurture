@@ -17,7 +17,7 @@ public:
     std::vector<Event> step();    // 毎フレーム
     CareAvailability availability(Care care) const;  // メニューの表示用
     CareResult do_care(Care care);  // 先に step() で時間を進めてから判定・実行する
-    void end_walk();                // 散歩から家に戻ったとき
+    std::vector<Event> end_walk();  // 散歩から家に戻ったとき
     const DogState& state() const;
     // 行動の終了通知は behavior の設計で追加する
 };
@@ -56,11 +56,11 @@ struct CareResult {
 };
 ```
 
-- `end_walk()` も先に `step()` で時間を進めてから散歩を終える
+- `end_walk()` も先に `step()` で時間を進めてから散歩を終え、`step()` で起きた出来事を返す
 
 ## 出来事の受け渡し
 
-- `resume()`・`step()`・`do_care()` は、起きた出来事（`Event`、[growth.md](growth.md)）のリストを返す（ADR 0020）
+- `resume()`・`step()`・`do_care()`・`end_walk()` は、起きた出来事（`Event`、[growth.md](growth.md)）のリストを返す（ADR 0020）
 - 不在中の出来事は「おかえり」の表示に使う（ADR 0011）
 - 今のところ出来事は世話による成長（`Grew`）だけで、`resume()` と `step()` は空のリストを返す。
   時間の経過で起きる出来事は、行動意図や芸の設計で加わる

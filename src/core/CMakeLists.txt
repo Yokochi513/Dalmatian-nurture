@@ -6,6 +6,9 @@ add_library(dalmatian_core STATIC
     tuning.hpp
     care.hpp
     care.cpp
+    event.hpp
+    growth.hpp
+    growth.cpp
     needs.hpp
     needs.cpp
     simulation.hpp

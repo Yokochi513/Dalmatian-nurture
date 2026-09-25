@@ -1,5 +1,6 @@
 #include "core/simulation.hpp"
 
+#include "core/growth.hpp"
 #include "core/needs.hpp"
 
 #include <utility>
@@ -20,7 +21,7 @@ Simulation::Simulation(const Clock& clock, DogState state, TimePoint last_saved,
 {
 }
 
-void Simulation::resume()
+std::vector<Event> Simulation::resume()
 {
     const TimePoint now = clock_.now().utc;
     state_.walking = false;
@@ -29,9 +30,10 @@ void Simulation::resume()
     }
     last_processed_ = now;
     remainder_ = {};
+    return {};
 }
 
-void Simulation::step()
+std::vector<Event> Simulation::step()
 {
     const TimePoint now = clock_.now().utc;
     const auto elapsed = now - last_processed_;
@@ -39,14 +41,14 @@ void Simulation::step()
 
     // 時計が戻った場合は経過を 0 とする
     if (elapsed <= std::chrono::milliseconds::zero()) {
-        return;
+        return {};
     }
 
     // 起動したまま PC がスリープした場合などは、不在として一括で進める
     if (elapsed >= tuning_.offline_gap) {
         apply_absence(state_, elapsed, tuning_);
         remainder_ = {};
-        return;
+        return {};
     }
 
     remainder_ += elapsed;
@@ -54,6 +56,7 @@ void Simulation::step()
         tick();
         remainder_ -= kTick;
     }
+    return {};
 }
 
 CareAvailability Simulation::availability(Care care) const
@@ -61,16 +64,25 @@ CareAvailability Simulation::availability(Care care) const
     return check_care(state_, care, clock_.now(), tuning_);
 }
 
-CareAvailability Simulation::do_care(Care care)
+CareResult Simulation::do_care(Care care)
 {
-    step();
-    return apply_care(state_, care, clock_.now(), tuning_);
+    CareResult result;
+    result.events = step();
+
+    const ClockReading now = clock_.now();
+    result.availability = apply_care(state_, care, now, tuning_);
+    if (result.availability.available()) {
+        const auto grown = add_growth(state_, tuning_of(tuning_, care).growth_points, local_day(now), tuning_);
+        result.events.insert(result.events.end(), grown.begin(), grown.end());
+    }
+    return result;
 }
 
-void Simulation::end_walk()
+std::vector<Event> Simulation::end_walk()
 {
-    step();
+    auto events = step();
     state_.walking = false;
+    return events;
 }
 
 void Simulation::tick()
