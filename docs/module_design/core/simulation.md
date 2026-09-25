@@ -20,8 +20,9 @@ public:
     CareResult do_care(Care care);               // 先に step() で時間を進めてから判定・実行する
     CareResult do_trick(Care care, Trick trick); // しつける・芸をさせる（tricks.md）
     std::vector<Event> end_walk();  // 散歩から家に戻ったとき
+    void finish_intent(std::uint64_t id);  // 動作の意図の演出が終わったとき（behavior.md）
+    double time_of_day() const;            // 一日の中の時刻（現地時刻の時。ADR 0024）
     const DogState& state() const;
-    // 行動の終了通知は behavior の設計で追加する
 };
 ```
 
@@ -29,18 +30,21 @@ public:
 
 - 前回処理した時刻と、1秒に満たない端数を持つ（ADR 0021）
 - `step()` は時計を読み、前回からの経過を1秒刻みで処理し、端数を持ち越す
-- 1秒刻みごとの処理：活動（散歩中なら `Walking`、それ以外は `Awake`）を決め、
-  `advance_needs` → `apply_neglect` を呼ぶ（[needs.md](needs.md)）
+- 1秒刻みごとの処理：活動（散歩中なら `Walking`、行動意図が Sleep なら `Sleeping`、それ以外は `Awake`）を決め、
+  `advance_needs` → `apply_neglect` → `update_intent` を呼ぶ（[needs.md](needs.md)、[behavior.md](behavior.md)）。
+  1秒刻みの時刻は、前回の刻みから1秒ずつ進めた時刻とする（行動意図の `since` に使う）
 - 経過がマイナス（時計が戻った）なら 0 として扱い、戻った時刻から改めて進める（ADR 0022）
 - **起動中でも、前回から `offline_gap` 以上空いた場合は不在として扱う**（`apply_absence`）。
   起動したまま PC がスリープした場合などに、1秒刻みで何時間分も処理しないため。
-  デバッグ時計の ×3600（ADR 0025）では1フレームで約60秒進むため、それが不在扱いにならない長さにする
+  デバッグ時計の ×3600（ADR 0025）では1フレームで約60秒進むため、それが不在扱いにならない長さにする。
+  このとき行動意図は規則で決め直す
 
 ## 起動時（resume）
 
 - 散歩中だったら散歩を終える（ADR 0029）
 - セーブの最終終了時刻からの経過を不在の一括計算で進める（ADR 0022）
 - 最終終了時刻が未来（時計が戻った）なら何もしない
+- 行動意図を Greet にする（「おかえり」。[behavior.md](behavior.md)）
 
 ## 世話の入口
 
@@ -49,6 +53,7 @@ public:
   最新の欲求で判定できる（[care.md](care.md)）
 - 世話を受け付けたら、その世話の `growth_points` を `add_growth` で足す（[growth.md](growth.md)）。
   `care` は成長を知らず、組み合わせるのは `Simulation` の役目とする
+- 世話を受け付けたら、行動意図を世話に対応する動作の意図に切り替える（`start_care_intent`、[behavior.md](behavior.md)）
 - `do_care()` は判定結果と出来事をまとめて返す
 - しつける・芸をさせるは `do_trick(care, trick)` で実行する。`do_care(Train)` のように芸を指定しなければ
   `TrickNotSpecified` で断る。受け付けたら `do_care()` と同じく成長ポイントを足し、習得の出来事
@@ -61,7 +66,8 @@ struct CareResult {
 };
 ```
 
-- `end_walk()` も先に `step()` で時間を進めてから散歩を終え、`step()` で起きた出来事を返す
+- `end_walk()` も先に `step()` で時間を進めてから散歩を終え、行動意図を Greet にし、`step()` で起きた出来事を返す
+- `finish_intent(id)` は先に `step()` で時間を進めてから、[behavior.md](behavior.md) の `finish_intent` を呼ぶ
 
 ## 出来事の受け渡し
 

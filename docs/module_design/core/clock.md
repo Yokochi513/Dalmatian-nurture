@@ -25,6 +25,7 @@ public:
 // 現地時刻と現地の日付
 std::chrono::local_time<std::chrono::milliseconds> local_now(const ClockReading&);
 std::chrono::local_days local_day(const ClockReading&);
+double hours_of_day(const ClockReading&);  // 一日の中の時刻（現地時刻の時、0〜24 の小数。ADR 0024）
 
 } // namespace dal::core
 ```

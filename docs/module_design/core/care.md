@@ -14,7 +14,7 @@
 |---|---|
 | しつける（Train）・芸をさせる（PerformTrick）の芸ごとの判定と効果 | [tricks.md](tricks.md) |
 | 受け付けたときの成長ポイントを足す処理（`Simulation` が行う） | [growth.md](growth.md) |
-| 「寝ているので不可」、受け付けたときの行動意図の切り替え（ADR 0016） | behavior.md |
+| 受け付けたときの行動意図の切り替え（ADR 0016。`Simulation` が行う） | [behavior.md](behavior.md) |
 
 ## 世話と欲求
 
@@ -37,9 +37,10 @@
 | 順 | 理由（`CareBlock`） | 条件 | 残り時間 |
 |---|---|---|---|
 | 1 | `AlreadyWalking` | 散歩中に散歩を始めようとした | なし |
-| 2 | `DailyLimit` | 今日受け付けた回数が `daily_limit` に達した | 次の現地の0時まで |
-| 3 | `Cooldown` | 最後に受け付けてから `cooldown` が経っていない | クールダウンの残り |
-| 4 | `NotNeeded` | 対応する欲求が `min_need` 未満（満たされている） | なし |
+| 2 | `Sleeping` | 犬が寝ている（行動意図が Sleep。[behavior.md](behavior.md)） | なし |
+| 3 | `DailyLimit` | 今日受け付けた回数が `daily_limit` に達した | 次の現地の0時まで |
+| 4 | `Cooldown` | 最後に受け付けてから `cooldown` が経っていない | クールダウンの残り |
+| 5 | `NotNeeded` | 対応する欲求が `min_need` 未満（満たされている） | なし |
 
 - 表示する文言（「あと15分」「今日はもう満足」「おなかいっぱい」など）への変換は `app` が行う
 - 1日の上限は、クールダウンより長く待つ必要があるため先に判定する
@@ -66,7 +67,7 @@
 
 ```cpp
 enum class CareBlock {
-    None, AlreadyWalking, DailyLimit, Cooldown, NotNeeded,
+    None, AlreadyWalking, Sleeping, DailyLimit, Cooldown, NotNeeded,
     TrickLocked, TrickLearned, TrickNotLearned, TrickNotSpecified,  // tricks.md
 };
 

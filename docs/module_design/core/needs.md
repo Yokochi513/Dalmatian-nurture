@@ -18,8 +18,8 @@ double mood(const Needs&);
 ```
 
 1秒刻みごとに `advance_needs` → `apply_neglect` の順に呼ぶ（なつき度の判定には更新後の欲求を使う）。
-`Activity` は `Simulation` が決める。散歩中（`DogState::walking`）なら `Walking`、それ以外は `Awake`。
-`Sleeping` は行動意図（behavior）の設計で反映する。
+`Activity` は `Simulation` が決める。散歩中（`DogState::walking`）なら `Walking`、行動意図が Sleep なら
+`Sleeping`（[behavior.md](behavior.md)）、それ以外は `Awake`。
 
 ## 起動中の変化（1秒刻みごと）
 

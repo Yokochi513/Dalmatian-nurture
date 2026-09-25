@@ -44,7 +44,8 @@ struct DogState {
     std::chrono::local_days growth_day{};  // growth_today を数えている現地の日付（growth.md）
 
     std::array<double, kTrickCount> trick_proficiency{};  // Trick の順。100 で習得（tricks.md）
-    // 各部品の設計で追加する：行動意図（behavior）
+
+    Intent intent;  // 今の行動意図（behavior.md。IntentKind・Destination・NeedKind も behavior.md）
 };
 
 DogState new_dog(std::string name);  // 初回に迎えた子犬の状態
