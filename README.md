@@ -97,6 +97,7 @@ ctest --preset debug
 
 ## ドキュメント
 - 決定事項: [docs/adr/](docs/adr/) — 1決定につき1ファイル（[運用ルール](docs/adr/0001-record-decisions-in-adr.md)）
+- モジュール設計: [docs/module_design/](docs/module_design/) — モジュールごとの内部設計（[core](docs/module_design/core.md)）
 - エージェント向けルール: [AGENT.md](AGENT.md)
 
 ## その他
