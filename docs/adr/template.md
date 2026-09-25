@@ -1,6 +1,6 @@
 # NNNN. <決定事項のタイトル>
 
-- Status: Proposed | Accepted | Superseded by [NNNN](NNNN-xxx.md)
+- Status: Proposed | Accepted | Superseded by [NNNN](NNNN-xxx.md) | Partially superseded by [NNNN](NNNN-xxx.md)（置き換えられた範囲）
 - Date: YYYY-MM-DD
 
 ## Context

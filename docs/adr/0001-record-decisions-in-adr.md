@@ -1,6 +1,6 @@
 # 0001. 決定事項はADRとして記録する
 
-- Status: Accepted
+- Status: Partially superseded by [0010](0010-partially-superseded-status.md)（Status の選択肢）
 - Date: 2026-09-25
 
 ## Context

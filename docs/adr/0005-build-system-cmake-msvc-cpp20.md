@@ -1,6 +1,6 @@
 # 0005. ビルドを CMake + MSVC / C++20 で構成し、層ごとにターゲットを分割する
 
-- Status: Accepted
+- Status: Partially superseded by [0009](0009-module-structure.md)（ターゲット分割・依存方向・ディレクトリ構成）
 - Date: 2026-09-25
 
 ## Context
