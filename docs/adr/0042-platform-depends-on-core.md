@@ -1,6 +1,6 @@
 # 0042. platform は core に依存し、core のインターフェースの実装（時計など）を提供する
 
-- Status: Accepted
+- Status: Partially superseded by [0044](0044-tests-depend-on-platform.md)（依存方向）
 - Date: 2026-09-26
 
 ## Context

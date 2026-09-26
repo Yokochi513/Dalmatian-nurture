@@ -53,7 +53,7 @@ Dalmatian-nurture
 ┗━ docs/adr/          決定事項の記録
 ```
 
-各ファイルの一覧と構成のルールは [ADR 0009](docs/adr/0009-module-structure.md)、`physics` の追加は [ADR 0015](docs/adr/0015-physics-target.md)、`platform` から `core` への依存は [ADR 0042](docs/adr/0042-platform-depends-on-core.md) を参照。
+各ファイルの一覧と構成のルールは [ADR 0009](docs/adr/0009-module-structure.md)、`physics` の追加は [ADR 0015](docs/adr/0015-physics-target.md)、`platform` から `core` への依存は [ADR 0042](docs/adr/0042-platform-depends-on-core.md)、テストの対象は [ADR 0044](docs/adr/0044-tests-depend-on-platform.md) を参照。
 
 ### モジュールの依存関係
 
@@ -76,6 +76,7 @@ graph TD
     tests --> core
     tests --> anim
     tests --> physics
+    tests --> platform
 ```
 
 矢印は依存の向きを表し、逆向きの依存は禁止。`core`・`anim`・`physics` は OpenGL に依存しないため、描画なしで単体テストできる。
@@ -98,7 +99,7 @@ ctest --preset debug
 
 ## ドキュメント
 - 決定事項: [docs/adr/](docs/adr/) — 1決定につき1ファイル（[運用ルール](docs/adr/0001-record-decisions-in-adr.md)）
-- モジュール設計: [docs/module_design/](docs/module_design/) — モジュールごとの内部設計（[core](docs/module_design/core.md)）
+- モジュール設計: [docs/module_design/](docs/module_design/) — モジュールごとの内部設計（[core](docs/module_design/core.md)、[platform](docs/module_design/platform.md)）
 - エージェント向けルール: [AGENT.md](AGENT.md)
 
 ## その他
