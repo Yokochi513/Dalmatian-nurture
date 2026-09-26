@@ -23,12 +23,12 @@
 
 | ソース | 内容 | 設計書 | 状態 |
 |---|---|---|---|
-| `window.hpp/.cpp` | ウィンドウ、OpenGL のコンテキスト、カーソルの捕捉 | [window.md](platform/window.md) | 設計済み（一部実装済み） |
-| `input.hpp/.cpp` | キー・マウスの入力 | [input.md](platform/input.md) | 設計済み |
+| `window.hpp/.cpp` | ウィンドウ、OpenGL のコンテキスト、カーソルの捕捉 | [window.md](platform/window.md) | 実装済み |
+| `input.hpp/.cpp` | キー・マウスの入力 | [input.md](platform/input.md) | 実装済み |
 | `system_clock.hpp/.cpp` | core の時計の本番用の実装 | [system_clock.md](platform/system_clock.md) | 実装済み |
-| `audio.hpp/.cpp`、`miniaudio_impl.cpp` | 効果音の再生 | [audio.md](platform/audio.md) | 設計済み |
-| `paths.hpp/.cpp` | 実行ファイル・アセット・シェーダ・セーブの置き場所 | [paths.md](platform/paths.md) | 設計済み |
-| `save_storage.hpp/.cpp` | セーブファイルの書き込み・読み込み・退避 | [save_storage.md](platform/save_storage.md) | 設計済み |
+| `audio.hpp/.cpp`、`miniaudio_impl.cpp` | 効果音の再生 | [audio.md](platform/audio.md) | 実装済み |
+| `paths.hpp/.cpp` | 実行ファイル・アセット・シェーダ・セーブの置き場所 | [paths.md](platform/paths.md) | 実装済み |
+| `save_storage.hpp/.cpp` | セーブファイルの書き込み・読み込み・退避 | [save_storage.md](platform/save_storage.md) | 実装済み |
 
 ## テスト方針
 

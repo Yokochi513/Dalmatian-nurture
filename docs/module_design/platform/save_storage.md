@@ -14,7 +14,10 @@
 | `save.json` | 本番のセーブ |
 | `save.json.tmp` | 書き込み途中の一時ファイル |
 | `save.json.bak` | 直前の1世代 |
-| `save.json.broken-YYYYMMDD-HHMMSS` | 読めなかったため退避したファイル（現地時刻。消さずに残す） |
+| `save.json.broken-YYYYMMDD-HHMMSS` | 読めなかったため退避した `save.json`（現地時刻。消さずに残す） |
+| `save.json.bak.broken-YYYYMMDD-HHMMSS` | 同じく退避した `.bak` |
+
+同じ名前の退避ファイルがすでにあれば、末尾に `-2`、`-3` … を付ける。
 
 ## 書き込み（ADR 0027）
 
