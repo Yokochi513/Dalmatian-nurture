@@ -5,6 +5,7 @@ add_executable(dalmatian_tests
     core/growth_test.cpp
     core/tricks_test.cpp
     core/behavior_test.cpp
+    core/save_test.cpp
     core/needs_test.cpp
     core/simulation_test.cpp
     physics/jolt_runtime_test.cpp)

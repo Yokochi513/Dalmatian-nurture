@@ -115,6 +115,9 @@ LoadResult deserialize(std::string_view text);
 ```
 
 - 例外は外に出さない。JSON ライブラリの例外は `deserialize` の中で `Invalid` に変える
+- 時刻と日付の文字列は、固定の書式を自前で組み立てて読み取る（`std::chrono` の書式・解析機能の実装差に
+  左右されず、書式違いを確実に `Invalid` にするため）
+- `message` には `$.dog.affection` のように項目の場所を入れる
 - 書き出したものを読み込むと元に戻る（`walking` と `intent` を除く）ことを単体テストで確かめる
 
 ## 検討して採らなかった案

@@ -35,7 +35,7 @@
 | `growth.hpp/.cpp`、`event.hpp` | 成長ポイントと成長段階、出来事 | [growth.md](core/growth.md) | 実装済み |
 | `tricks.hpp/.cpp` | 芸の習熟度と習得、しつける・芸をさせる | [tricks.md](core/tricks.md) | 実装済み |
 | `behavior.hpp/.cpp` | 行動意図の決定、行動の終了通知、寝ている間 | [behavior.md](core/behavior.md) | 実装済み |
-| `save.hpp/.cpp` | JSON との相互変換、読み込み時の検査、形式の番号 | [save.md](core/save.md) | 設計済み |
+| `save.hpp/.cpp` | JSON との相互変換、読み込み時の検査、形式の番号 | [save.md](core/save.md) | 実装済み |
 
 ## テスト方針
 
